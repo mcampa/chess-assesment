@@ -7,6 +7,7 @@ export const Api = express.Router();
 
 class GameNotFound extends Error {}
 class InvalidMove extends Error {}
+class NotYourTurn extends Error {}
 class NotImplemented extends Error {}
 
 /**
@@ -77,6 +78,10 @@ Api.post("/games/:gameId/moves", async (req, res, next) => {
     return next(new InvalidMove());
   }
 
+  if (piece.color !== gamePlay.turn) {
+    return next(new NotYourTurn());
+  }
+
   // Move the piece in the board
   const validMove = gamePlay.movePiece(piece, destination);
   if (!validMove) {
@@ -101,13 +106,16 @@ Api.get("/games/:gameId/history", (req, res) => {
 
 Api.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   if (error instanceof GameNotFound) {
-    return res.status(404).json({ eror: "Game not found." });
+    return res.status(404).json({ error: "Game not found." });
   }
   if (error instanceof InvalidMove) {
-    return res.status(400).json({ eror: "Invalid move." });
+    return res.status(400).json({ error: "Invalid move." });
+  }
+  if (error instanceof NotYourTurn) {
+    return res.status(400).json({ error: "Not your turn." });
   }
   if (error instanceof NotImplemented) {
-    return res.status(501).json({ eror: "Not implemented." });
+    return res.status(501).json({ error: "Not implemented." });
   }
   console.error(error.stack);
   res.status(500).send({ error: "Something broke!" });
