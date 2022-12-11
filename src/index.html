@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* credit for the styling idea to https://codepen.io/jeansarlon/pen/WpZNda */
+      html {
+        height: 100%;
+        height: 100vh;
+      }
+      body {
+        height: auto;
+        width: auto;
+        min-height: 100%;
+        min-height: 100vh;
+        overflow-y: scroll;
+        margin: 0;
+        padding: 0;
+        background-color: #5d5d5d;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #chess {
+        width: 560px;
+        margin: 0 auto;
+        display: grid;
+        grid-gap: 0;
+        grid-template-columns: repeat(8, 70px);
+        grid-template-rows: 40px repeat(8, 70px) 40px;
+        grid-auto-flow: row;
+      }
+
+      .top {
+        display: grid;
+        align-items: stretch;
+        grid-column-start: 1;
+        grid-column-end: 9;
+        grid-row-start: 1;
+        grid-row-end: 1;
+        height: 0;
+      }
+
+      .box {
+        padding: 20px;
+        font-size: 140%;
+        background-color: #fff;
+        color: #000;
+        text-align: center;
+        cursor: pointer;
+        transition: opacity 0.3s;
+        border: 3px solid transparent;
+      }
+
+      .box.selected {
+        border: 3px solid red;
+      }
+
+      .box.highlighted {
+        border: 3px solid rgb(178, 91, 91);
+      }
+
+      .box:hover {
+        opacity: 0.5;
+      }
+
+      .box:nth-child(-2n + 9),
+      .box:nth-child(9) ~ div:nth-child(-2n + 16),
+      .box:nth-child(17) ~ div:nth-child(-2n + 25),
+      .box:nth-child(25) ~ div:nth-child(-2n + 32),
+      .box:nth-child(33) ~ div:nth-child(-2n + 41),
+      .box:nth-child(41) ~ div:nth-child(-2n + 48),
+      .box:nth-child(49) ~ div:nth-child(-2n + 57),
+      .box:nth-child(57) ~ div:nth-child(-2n + 64) {
+        background-color: #000;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chess"><div class="top"></div></div>
+  </body>
+  <script>
+    let game, selectedBoxId, possibleMoves;
+
+    function initializeBoard() {
+      for (i = 0; i < 64; i++) {
+        const box = document.createElement("div");
+        const rIndex = Math.floor(i / 8);
+        const cIndex = i % 8;
+        const letter = "abcdefgh".charAt(cIndex);
+        const boxId = `${letter}${(8 - rIndex).toString()}`;
+        box.setAttribute("id", boxId);
+        box.setAttribute("class", "box");
+        chess.appendChild(box);
+      }
+    }
+
+    async function loadGame() {
+      const gameId = location.pathname.substr(1);
+
+      if (!gameId) {
+        // if we are at home (/) create a new game and redirect to /:gameId
+        const response = await fetch("/api/games", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        game = await response.json();
+        history.pushState({}, "", `${location.origin}/${game._id}`);
+        return;
+      }
+
+      if (gameId !== 24) {
+        // Invalid game id, redirect
+        window.location.href = "/";
+        return;
+      }
+
+      const response = await fetch(`/api/games/${gameId}`);
+      game = await response.json();
+    }
+
+    function renderBoard() {
+      for (let rIndex = 0; rIndex < 8; rIndex++) {
+        for (let cIndex = 0; cIndex < 8; cIndex++) {
+          let letter = "abcdefgh".charAt(cIndex);
+          let boxId = `${letter}${(8 - rIndex).toString()}`;
+          let box = document.getElementById(boxId);
+
+          if (selectedBoxId === boxId) {
+            box.classList.add("selected");
+          } else {
+            box.classList.remove("selected");
+          }
+
+          if (isPossibleMove(rIndex, cIndex)) {
+            box.classList.add("highlighted");
+          } else {
+            box.classList.remove("highlighted");
+          }
+
+          box.innerHTML = game.board[rIndex][cIndex];
+        }
+      }
+    }
+
+    function isPossibleMove(rIndex, cIndex) {
+      return !!possibleMoves?.find(
+        (m) => m.destination[0] === rIndex && m.destination[1] === cIndex
+      );
+    }
+
+    async function getMoves(boxId) {
+      const response = await fetch(`/api/games/${game._id}/moves/${boxId}`);
+      const res = await response.json();
+      possibleMoves = res.possibleMoves;
+
+      renderBoard();
+    }
+
+    async function movePiece(origin, destination) {
+      const response = await fetch(`/api/games/${game._id}/moves`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ origin, destination }),
+      });
+      if (response.status === 200) {
+        game = await response.json();
+      }
+      selectedBoxId = null;
+      possibleMoves = null;
+      renderBoard();
+    }
+
+    (async function main() {
+      initializeBoard();
+      await loadGame();
+      renderBoard();
+
+      chess.addEventListener("mouseover", (e) => {
+        const boxId = e.target.getAttribute("id");
+        boxId && getMoves(boxId);
+      });
+
+      chess.addEventListener("click", (e) => {
+        const boxId = e.target.getAttribute("id");
+        if (!selectedBoxId) {
+          selectedBoxId = boxId;
+        } else if (selectedBoxId === boxId) {
+          selectedBoxId = null;
+        } else {
+          movePiece(selectedBoxId, boxId);
+        }
+        renderBoard();
+      });
+    })();
+  </script>
+</html>
