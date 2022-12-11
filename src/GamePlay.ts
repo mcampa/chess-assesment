@@ -41,7 +41,7 @@ export class GamePlay {
 
   constructor(board: Board = null, turn: Color = "W") {
     // Create a copy of the CHESS_BOARD to use as the game board
-    this.board = board ?? [...CHESS_BOARD.map((row) => [...row])];
+    this.board = [...(board ?? CHESS_BOARD).map((row) => [...row])];
     this.turn = turn;
   }
 

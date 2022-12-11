@@ -82,6 +82,7 @@ Api.post("/games/:gameId/moves", async (req, res, next) => {
   if (!validMove) {
     return next(new InvalidMove());
   }
+
   // Update the model and save changes to the DB
   model.board = gamePlay.getBoard();
   model.turn = gamePlay.turn;
@@ -95,8 +96,7 @@ Api.post("/games/:gameId/moves", async (req, res, next) => {
  * (NOT IMPLEMENTED)
  */
 Api.get("/games/:gameId/history", (req, res) => {
-  // Fetch the history of all moves in a game
-  res.send("Implement me.");
+  res.json({ history: [] });
 });
 
 Api.use((error: Error, req: Request, res: Response, next: NextFunction) => {
