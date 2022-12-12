@@ -5,7 +5,7 @@ A very simple chess REST API where only pawns are implemented. Using Node, Types
 ## Files
 ```python
 index.ts # Initial entry point, loads DB and server
-GamePlay.ts # main logic of chess lives here
+GamePlay.ts # The main logic of the game is here
 api.ts # all API endpoints are here
 helpers # helper functions
 models.ts # mongoose model for the game
