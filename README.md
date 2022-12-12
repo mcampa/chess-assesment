@@ -32,6 +32,9 @@ GET /api/games/:gameId/history
 ## Client
 The client is just a html file with some minimal CSS and simple JS that consumes the API to render the board (don't judge me on this one).
 
+When the user visits the root path (/) it will create a new game and redirect to /:game so it keeps the state of the game if the browser is refreshed.
+
+
 ## Usage
 ```
 npm install
