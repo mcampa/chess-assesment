@@ -93,7 +93,7 @@ export class GamePlay {
       case ROOK:
       default:
         // Not implemented
-        return null;
+        return [];
     }
   }
 

@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import { Game } from "./models";
-import { CHESS_BOARD } from "./GamePlay";
 import { positionToLocation } from "./helpers";
 
 export const Api = express.Router();

@@ -211,7 +211,7 @@
 
       chess.addEventListener("mouseover", (e) => {
         const boxId = e.target.getAttribute("id");
-        if (!selectedBoxId && boxId) {
+        if (!selectedBoxId && boxId?.length === 2) {
           getMoves(boxId);
         }
       });
